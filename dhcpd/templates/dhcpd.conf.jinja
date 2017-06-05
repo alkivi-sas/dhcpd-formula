@@ -4,11 +4,11 @@
 #
 
 {% set customized = {} %}
-{% set types_to_quote = ['string', 'text'] %}
-{% set quote = '' %}
-{% set dquote = '"' %}
-{% if salt['pillar.get']('dhcpd:customized_options', False) -%}
-{%- set customized = salt['pillar.get']('dhcpd:customized_options', {}) %}
+{%- set types_to_quote = ['string', 'text'] -%}
+{%- set quote = '' -%}
+{%- set dquote = '"' -%}
+{% if dhcpd_config.get('customized_options', False) -%}
+{%- set customized = dhcpd_config.get('customized_options', {}) %}
 # Customized dhcp options
   {%- for name, data in customized.items() %}
 option {{ name|replace('_', '-') }} code {{ data.code }} = {{ data.type }};
@@ -16,54 +16,66 @@ option {{ name|replace('_', '-') }} code {{ data.code }} = {{ data.type }};
 {% endif -%}
 
 # option definitions common to all supported networks...
-{% if salt['pillar.get']('dhcpd:domain_name', False) -%}
-option domain-name "{{ salt['pillar.get']('dhcpd:domain_name') }}";
+{% if dhcpd_config.get('domain_name', False) -%}
+option domain-name "{{ dhcpd_config.get('domain_name') }}";
 {% endif -%}
-{% if salt['pillar.get']('dhcpd:domain_name_servers', False) -%}
+{% if dhcpd_config.get('domain_name_servers', False) -%}
 option domain-name-servers
-  {%- for dns_server in salt['pillar.get']('dhcpd:domain_name_servers') %} {{ dns_server }}
+  {%- for dns_server in dhcpd_config.get('domain_name_servers') %} {{ dns_server }}
     {%- if not loop.last %}, {% else %};{% endif %}
   {%- endfor %}
 {% endif -%}
 
-{% if salt['pillar.get']('dhcpd:default_lease_time', False) -%}
-default-lease-time {{ salt['pillar.get']('dhcpd:default_lease_time') }};
+{% if dhcpd_config.get('default_lease_time', False) -%}
+default-lease-time {{ dhcpd_config.get('default_lease_time') }};
 {% endif -%}
-{% if salt['pillar.get']('dhcpd:max_lease_time', False) -%}
-max-lease-time {{ salt['pillar.get']('dhcpd:max_lease_time') }};
+{% if dhcpd_config.get('max_lease_time', False) -%}
+max-lease-time {{ dhcpd_config.get('max_lease_time') }};
 {% endif -%}
-{% if salt['pillar.get']('dhcpd:one_lease_per_client', False) -%}
-one-lease-per-client {{ salt['pillar.get']('dhcpd:one_lease_per_client') }};
+{% if dhcpd_config.get('one_lease_per_client', False) -%}
+one-lease-per-client {{ dhcpd_config.get('one_lease_per_client') }};
 {% endif -%}
-{% if salt['pillar.get']('dhcpd:get_lease_hostnames', False) -%}
-get-lease-hostnames {{ salt['pillar.get']('dhcpd:get_lease_hostnames') }};
+{% if dhcpd_config.get('get_lease_hostnames', False) -%}
+get-lease-hostnames {{ dhcpd_config.get('get_lease_hostnames') }};
 {% endif -%}
-{% if salt['pillar.get']('dhcpd:server_identifier') -%}
-server-identifier {{ salt['pillar.get']('dhcpd:server_identifier') }};
+{% if dhcpd_config.get('server_identifier') -%}
+server-identifier {{ dhcpd_config.get('server_identifier') }};
 {% endif -%}
-{% if salt['pillar.get']('dhcpd:server_name') -%}
-server-name {{ dquote }}{{ salt['pillar.get']('dhcpd:server_name') }}{{ dquote }};
+{% if dhcpd_config.get('server_name') -%}
+server-name {{ dquote }}{{ dhcpd_config.get('server_name') }}{{ dquote }};
 {% endif -%}
-{%- if salt['pillar.get']('dhcpd:allow', False) %}
-allow {{ salt['pillar.get']('dhcpd:allow') }};
-{%- elif salt['pillar.get']('dhcpd:deny', False) %}
-deny {{ salt['pillar.get']('dhcpd:deny') }};
+{%- if dhcpd_config.get('allow', False) %}
+allow {{ dhcpd_config.get('allow') }};
+{%- elif dhcpd_config.get('deny', False) %}
+deny {{ dhcpd_config.get('deny') }};
 {%- endif %}
-{%- if 'use_host_decl_names' in salt['pillar.get']('dhcpd', {}) %}
-use-host-decl-names {{ salt['pillar.get']('dhcpd:use_host_decl_names') }};
+{%- if 'use_host_decl_names' in dhcpd_config %}
+use-host-decl-names {{ dhcpd_config.get('use_host_decl_names') }};
 {%- endif %}
+{%- if dhcpd_config.get('bootp', False) -%}
+allow bootp;
+{% endif -%}
+{% if dhcpd_config.get('booting', False) -%}
+allow booting;
+{% endif -%}
+{% if dhcpd_config.get('filename', False) -%}
+filename "{{ dhcpd_config.get('filename') }}";
+{% endif -%}
+{% if dhcpd_config.get('next-server', False) -%}
+next-server "{{ dhcpd_config.get('next-server') }}";
+{% endif -%}
 
 
 # Use this to enble / disable dynamic dns updates globally.
-{%- if salt['pillar.get']('dhcpd:ddns_update_style', False) %}
-ddns-update-style {{ salt['pillar.get']('dhcpd:ddns_update_style') }};
+{%- if dhcpd_config.get('ddns_update_style', False) %}
+ddns-update-style {{ dhcpd_config.get('ddns_update_style') }};
 {%- else %}
 #ddns-update-style none;
 {%- endif %}
 
 # If this DHCP server is the official DHCP server for the local
 # network, the authoritative directive should be uncommented.
-{%- if salt['pillar.get']('dhcpd:authoritative', False) %}
+{%- if dhcpd_config.get('authoritative', False) %}
 authoritative;
 {%- else %}
 #authoritative;
@@ -71,18 +83,18 @@ authoritative;
 
 # Use this to send dhcp log messages to a different log file (you also
 # have to hack syslog.conf to complete the redirection).
-{%- if salt['pillar.get']('dhcpd:log_facility', False) %}
-log-facility {{ salt['pillar.get']('dhcpd:log_facility') }};
+{%- if dhcpd_config.get('log_facility', False) %}
+log-facility {{ dhcpd_config.get('log_facility') }};
 {%- endif %}
 
 {%- for option in customized.keys() %}
-  {%- if option in salt['pillar.get']('dhcpd') %}
+  {%- if option in dhcpd_config %}
     {%- if customized[option]['type'] in types_to_quote %} {% set quote = dquote %} {%- endif %}
-option {{ option|replace('_', '-') }} {{ quote }}{{ salt['pillar.get']('dhcpd:' ~ option) }}{{ quote }};
+option {{ option|replace('_', '-') }} {{ quote }}{{ dhcpd_config.get(option) }}{{ quote }};
   {%- endif %}
 {%- endfor %}
 
-{%- for failover_peer, config in salt['pillar.get']('dhcpd:failover_peers', {}).items() %}
+{%- for failover_peer, config in dhcpd_config.get('failover_peers', {}).items() %}
   {%- if config.has_key('comment') %}
     {%- for line in config.comment.splitlines() %}
 # {{ line }}
@@ -139,11 +151,11 @@ failover peer "{{ failover_peer }}" {
 {%- endfor %}
 
 {%- set intendation='' %}
-{%- for subnet, config in salt['pillar.get']('dhcpd:subnets', {}).items() %}
-{%- include 'dhcpd/files/subnet.jinja' with context %}
+{%- for subnet, config in dhcpd_config.get('subnets', {}).items() %}
+{%- include 'dhcpd/templates/subnet.jinja' with context %}
 {%- endfor %}
 
-{% for host, config in salt['pillar.get']('dhcpd:hosts', {}).items() %}
+{% for host, config in dhcpd_config.get('hosts', {}).items() %}
   {%- if config.has_key('comment') %}
     {%- for line in config.comment.splitlines() %}
 # {{ line }}
@@ -178,7 +190,7 @@ host {{ host }} {
   {%- endfor %}
 }
 {% endfor %}
-{%- for class, config in salt['pillar.get']('dhcpd:classes', {}).items() %}
+{%- for class, config in dhcpd_config.get('classes', {}).items() %}
   {%- if config.has_key('comment') %}
     {%- for line in config.comment.splitlines() %}
 # {{ line }}
@@ -196,7 +208,7 @@ class "{{ class }}" {
   {%- endfor %}
 }
 {% endfor %}
-{%- for shared_network, config in salt['pillar.get']('dhcpd:shared_networks', {}).items() %}
+{%- for shared_network, config in dhcpd_config.get('shared_networks', {}).items() %}
   {%- if config.has_key('comment') %}
     {%- for line in config.comment.splitlines() %}
 # {{ line }}

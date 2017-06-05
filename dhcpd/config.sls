@@ -3,10 +3,10 @@
 include:
   - dhcpd
 
-dhcpd.conf:
+dhcpd-config:
   file.managed:
-    - name: {{ dhcpd.config }}
-    - source: salt://dhcpd/files/dhcpd.conf
+    - name: {{ dhcpd.config_file }}
+    - source: salt://dhcpd/templates/dhcpd.conf.jinja
     - template: jinja
     - user: root
 {% if 'BSD' in salt['grains.get']('os') %}
@@ -15,16 +15,18 @@ dhcpd.conf:
     - group: root
 {% endif %}
     - mode: 644
+    - context:
+      dhcpd_config: {{ dhcpd.config }}
     - watch_in:
       - service: dhcpd
 
 
 {% if dhcpd.service_config is defined %}
 
-service_config:
+service-config:
   file.managed:
     - name: {{ dhcpd.service_config }}
-    - source: {{ 'salt://dhcpd/files/service_config.' ~ salt['grains.get']('os_family') }}
+    - source: {{ 'salt://dhcpd/templates/service_config.' ~ salt['grains.get']('os_family') }}.jinja
     - makedirs: True
     - template: jinja
     - user: root
@@ -34,6 +36,8 @@ service_config:
     - group: root
 {% endif %}
     - mode: 644
+    - context:
+      config: {{ dhcpd.config }}
     - watch_in:
       - service: dhcpd
 

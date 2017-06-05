@@ -1,3 +1,4 @@
+
 # SaltStack-generated demon configuration file for ISC dhcpd
 
 # Path to dhcpd's config file (default: /etc/dhcp/dhcpd.conf).
@@ -12,4 +13,4 @@
 
 # On what interfaces should the DHCP server (dhcpd) serve DHCP requests?
 #       Separate multiple interfaces with spaces, e.g. "eth0 eth1".
-INTERFACES="{{ ' '.join(salt['pillar.get']('dhcpd:listen_interfaces', [])) }}"
+INTERFACES="{{ ' '.join(config.get('listen_interfaces', [])) }}"

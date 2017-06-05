@@ -1,29 +1,53 @@
-{% set dhcpd = salt['grains.filter_by']({
+# -*- coding: utf-8 -*-
+# vim: ft=jinja
+
+{## Start with  defaults from defaults.sls ##}
+{% import_yaml 'dhcpd/defaults.yaml' as default_settings %}
+
+{##
+Setup variable using grains['os_family'] based logic, only add key:values here
+that differ from whats in defaults.yaml
+##}
+{% set os_family_map = salt['grains.filter_by']({
     'Arch': {
         'server': 'dhcp',
         'service': 'dhcpd4',
-        'config': '/etc/dhcpd.conf',
+        'config_file': '/etc/dhcpd.conf',
     },
     'Debian': {
         'server': 'isc-dhcp-server',
         'service': 'isc-dhcp-server',
-        'config': '/etc/dhcp/dhcpd.conf',
+        'config_file': '/etc/dhcp/dhcpd.conf',
         'service_config': '/etc/default/isc-dhcp-server',
     },
     'RedHat': {
         'server': 'dhcp',
         'service': 'dhcpd',
-        'config': '/etc/dhcp/dhcpd.conf',
+        'config_file': '/etc/dhcp/dhcpd.conf',
     },
     'FreeBSD': {
         'server': 'isc-dhcp43-server',
         'service': 'isc-dhcpd',
-        'config': '/usr/local/etc/dhcpd.conf',
+        'config_file': '/usr/local/etc/dhcpd.conf',
         'service_config': '/etc/rc.conf.d/dhcpd',
     },
     'Suse': {
         'server': 'dhcp-server',
         'service': 'dhcpd',
-        'config': '/etc/dhcpd.conf',
+        'config_file': '/etc/dhcpd.conf',
     },
-}, merge=salt['pillar.get']('dhcpd:lookup')) %}
+  }
+  , grain="os_family"
+  , merge=salt['pillar.get']('dhcpd:lookup'))
+%}
+
+{## Merge the flavor_map to the default settings ##}
+{% do default_settings.dhcpd.update(os_family_map) %}
+
+{## Merge in dhcpd:lookup pillar ##}
+{% set dhcpd = salt['pillar.get'](
+        'dhcpd',
+        default=default_settings.dhcpd,
+        merge=True
+    )
+%}

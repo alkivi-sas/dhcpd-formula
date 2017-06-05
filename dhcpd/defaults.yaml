@@ -1,0 +1,11 @@
+# -*- coding: utf-8 -*-
+# vim: ft=yaml
+dhcpd:
+  config:
+    default_lease_time: 3600
+    max_lease_time: 72000
+    authoritative: True
+    log_facility: local7
+    bootp: True
+    booting: True
+    filename: pxelinux.0
