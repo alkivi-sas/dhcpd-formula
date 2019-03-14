@@ -16,7 +16,7 @@ dhcpd-config:
 {% endif %}
     - mode: 644
     - context:
-      dhcpd_config: {{ dhcpd.config }}
+      dhcpd_config: {{ dhcpd.config|tojson }}
     - watch_in:
       - service: dhcpd
 
@@ -37,7 +37,7 @@ service-config:
 {% endif %}
     - mode: 644
     - context:
-      config: {{ dhcpd.config }}
+      config: {{ dhcpd.config|tojson }}
     - watch_in:
       - service: dhcpd
 
